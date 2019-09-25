@@ -1,3 +1,6 @@
+#include "SmoothDigital.h"
+#include "SmoothAnalog.h"
+
 // -------------- PINS -------------- //
 
 // -------------- VARS -------------- //
