@@ -6,6 +6,7 @@
 class SimpleSerialReceiver {
   public:
     SimpleSerialReceiver();
+    SimpleSerialReceiver(int startByte, int stopByte, int id);
   private:
 };
 #endif
