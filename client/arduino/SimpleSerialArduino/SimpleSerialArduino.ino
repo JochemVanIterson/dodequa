@@ -20,10 +20,22 @@ unsigned long lastMillis = 0;
 SimpleSerialSender debugSerialS;
 SimpleSerialReceiver ledSerialR;
 
+// -------------- TRANSCEIVERS -------------- //
+RF24 radio(7, 8); // CE, CSN
+const byte addressReceive[6] = "00001";
+const byte addressSend[6]    = "00002";
+
 void setup() {
   Serial.begin(115200);
 
+  // -------------- Serial -------------- //
   debugSerialS = SimpleSerialSender(matchOut[0], matchOut[1], 100);
+
+  // -------------- Transceiver -------------- //
+  radio.begin();
+  radio.openWritingPipe(addressSend); // 00002
+  radio.openReadingPipe(1, addressReceive); // 00001
+  radio.setPALevel(RF24_PA_MIN);
 }
 
 void loop() {
