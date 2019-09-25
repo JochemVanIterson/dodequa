@@ -1,0 +1,2 @@
+"Environment set".postln;
+currentEnvironment;
