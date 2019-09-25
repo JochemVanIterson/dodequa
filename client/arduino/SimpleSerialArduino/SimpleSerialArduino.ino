@@ -10,6 +10,7 @@ void setup() {
 }
 
 void loop() {
+  getSerial(inBytes);
   clearInput();
 }
 
