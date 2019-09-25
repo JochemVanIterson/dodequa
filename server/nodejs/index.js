@@ -8,6 +8,7 @@ global.tools = require('./scripts/tools.js');
 
 // ---------------------------- Import libraries ---------------------------- //
 tools.statusPrinter(statusIndex++, "Loading modules");
+global.fs = require('fs');
 
 // ---------------------------------- Vars ---------------------------------- //
 tools.statusPrinter(statusIndex++, "Init Vars");
