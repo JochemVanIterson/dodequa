@@ -9,10 +9,17 @@
 byte inBytes[5];
 void setup() {
   Serial.begin(115200);
+
+  debugSerialS = SimpleSerialSender(matchOut[0], matchOut[1], 100);
 }
 
 void loop() {
   getSerial(inBytes);
+ if((millis()-lastMillis)>1000){
+   lastMillis = millis();
+   debugSerialS.send(lastMillis);
+ }
+
   clearInput();
 }
 
@@ -21,7 +28,7 @@ void getSerial(byte* inBytes){
   // op te slaan in de variabele inBytes
   if (Serial.available()) {
     Serial.readBytes((char*)inBytes,4);
-    return; 
+    return;
   }
 }
 void clearInput() {
