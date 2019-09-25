@@ -8,7 +8,10 @@ global.tools = require('./scripts/tools.js');
 
 // ---------------------------- Import libraries ---------------------------- //
 tools.statusPrinter(statusIndex++, "Loading modules");
+global.socketio = require('socket.io');
 global.fs = require('fs');
+
+global.socketHandler = require('./scripts/socketHandler.js');
 
 // ---------------------------------- Vars ---------------------------------- //
 tools.statusPrinter(statusIndex++, "Init Vars");
@@ -26,4 +29,9 @@ if(fs.existsSync('./config.json')){
   return;
 }
 if(debug) console.log("appConfig", appConfig);
+
+// ---------------------------- Socket listener ----------------------------- //
+tools.statusPrinter(statusIndex++, "Init Socket.IO");
+socketHandler.init();
+
 console.log(chalk.cyan('      Setup Completed'));
