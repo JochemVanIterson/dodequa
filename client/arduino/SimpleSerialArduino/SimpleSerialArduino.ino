@@ -3,6 +3,10 @@
 #include "SmoothDigital.h"
 #include "SmoothAnalog.h"
 
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
 // -------------- PINS -------------- //
 int ledPin = 13;
 
