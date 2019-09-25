@@ -9,3 +9,8 @@ thisProcess.openUDPPort(3002);
 	},
 	'/serialdata/acc/calc'
 );
+
+TempoClock.default.sched(1, {
+	"Value is now: ".post; ~freq.postln;
+	1; //Herhaal iedere nn seconden
+});
