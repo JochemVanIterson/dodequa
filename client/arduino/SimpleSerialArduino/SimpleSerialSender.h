@@ -10,7 +10,6 @@ class SimpleSerialSender {
     void send(int value); // DEPRECATED
     void sendUInt(unsigned long value);
     void sendInt(long value);
-    void sendUFloat(unsigned double value);
     void sendFloat(double value);
     void sendBool(bool value);
   private:

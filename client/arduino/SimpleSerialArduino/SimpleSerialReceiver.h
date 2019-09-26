@@ -11,7 +11,6 @@ class SimpleSerialReceiver {
     long data(byte *inBytes);
     unsigned long dataUInt(byte *inBytes);
     long dataInt(byte *inBytes);
-    unsigned double dataUFloat(byte *inBytes);
     double dataFloat(byte *inBytes);
     bool dataBool(byte *inBytes);
   private:

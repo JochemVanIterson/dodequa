@@ -25,13 +25,6 @@ void SimpleSerialSender::sendInt(long value){
   dataOut[3] = value % 256;
   Serial.write(dataOut,5);
 }
-void SimpleSerialSender::sendUFloat(unsigned double value){
-  value *= 100;
-  dataOut[1] = id;
-  dataOut[2] = value / 256;
-  dataOut[3] = value % 256;
-  Serial.write(dataOut,5);
-}
 void SimpleSerialSender::sendFloat(double value){
   value *= 100;
   value += 32.768;

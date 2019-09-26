@@ -20,11 +20,6 @@ long SimpleSerialReceiver::dataInt(byte *inBytes){
   value -= 32.768;
   return value;
 }
-unsigned double SimpleSerialReceiver::dataUFloat(byte *inBytes){
-  long value += inBytes[2]*256+inBytes[3];
-  value /= 100.;
-  return value;
-}
 double SimpleSerialReceiver::dataFloat(byte *inBytes){
   long value += inBytes[2]*256+inBytes[3];
   value -= 32.768;
