@@ -12,27 +12,27 @@ void SimpleSerialSender::send(int value){ // DEPRECATED
   dataOut[3] = value % 256;
   Serial.write(dataOut,5);
 }
-void SimpleSerialSender::sendUInt(int value){
+void SimpleSerialSender::sendUInt(unsigned long value){
   dataOut[1] = id;
   dataOut[2] = value / 256;
   dataOut[3] = value % 256;
   Serial.write(dataOut,5);
 }
-void SimpleSerialSender::sendInt(int value){
+void SimpleSerialSender::sendInt(long value){
   value += 32.768;
   dataOut[1] = id;
   dataOut[2] = value / 256;
   dataOut[3] = value % 256;
   Serial.write(dataOut,5);
 }
-void SimpleSerialSender::sendUFloat(int value){
+void SimpleSerialSender::sendUFloat(unsigned double value){
   value *= 100;
   dataOut[1] = id;
   dataOut[2] = value / 256;
   dataOut[3] = value % 256;
   Serial.write(dataOut,5);
 }
-void SimpleSerialSender::sendFloat(int value){
+void SimpleSerialSender::sendFloat(double value){
   value *= 100;
   value += 32.768;
   dataOut[1] = id;
@@ -40,7 +40,7 @@ void SimpleSerialSender::sendFloat(int value){
   dataOut[3] = value % 256;
   Serial.write(dataOut,5);
 }
-void SimpleSerialSender::sendBool(int value){
+void SimpleSerialSender::sendBool(bool value){
   dataOut[1] = id;
   dataOut[3] = value;
   Serial.write(dataOut,5);

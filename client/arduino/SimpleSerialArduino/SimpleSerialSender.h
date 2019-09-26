@@ -8,11 +8,11 @@ class SimpleSerialSender {
     SimpleSerialSender();
     SimpleSerialSender(int startByte, int stopByte, int id);
     void send(int value); // DEPRECATED
-    void sendUInt(int value);
-    void sendInt(int value);
-    void sendUFloat(int value);
-    void sendFloat(int value);
-    void sendBool(int value);
+    void sendUInt(unsigned long value);
+    void sendInt(long value);
+    void sendUFloat(unsigned double value);
+    void sendFloat(double value);
+    void sendBool(bool value);
   private:
     byte dataOut[5];
     int id;
