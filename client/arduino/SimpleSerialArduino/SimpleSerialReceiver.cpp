@@ -12,4 +12,25 @@ bool SimpleSerialReceiver::match(byte *inBytes){
 long SimpleSerialReceiver::data(byte *inBytes){
   return inBytes[2]*256+inBytes[3];
 }
-
+unsigned long SimpleSerialReceiver::dataUInt(byte *inBytes){
+  return inBytes[2]*256+inBytes[3];
+}
+long SimpleSerialReceiver::dataInt(byte *inBytes){
+  long value += inBytes[2]*256+inBytes[3];
+  value -= 32.768;
+  return value;
+}
+unsigned double SimpleSerialReceiver::dataUFloat(byte *inBytes){
+  long value += inBytes[2]*256+inBytes[3];
+  value /= 100.;
+  return value;
+}
+double SimpleSerialReceiver::dataFloat(byte *inBytes){
+  long value += inBytes[2]*256+inBytes[3];
+  value -= 32.768;
+  value /= 100.;
+  return value;
+}
+bool SimpleSerialReceiver::dataBool(byte *inBytes){
+  return inBytes[3]!=0;
+}
