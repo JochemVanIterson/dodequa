@@ -1,5 +1,7 @@
 #include "SimpleSerialSender.h"
 #include "SimpleSerialReceiver.h"
+#include "SimpleTransSender.h"
+#include "SimpleTransReceiver.h"
 #include "SmoothDigital.h"
 #include "SmoothAnalog.h"
 
