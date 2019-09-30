@@ -24,8 +24,12 @@ SimpleSerialReceiver ledSerialR;
 
 // -------------- TRANSCEIVERS -------------- //
 RF24 radio(7, 8); // CE, CSN
+byte inBytesTrans[5];
 const byte addressReceive[6] = "00001";
 const byte addressSend[6]    = "00002";
+
+// SimpleTransSender debugTransS;
+// SimpleTransReceiver ledTransR;
 
 void setup() {
   Serial.begin(115200);
@@ -42,15 +46,21 @@ void setup() {
 
 void loop() {
   getSerial(inBytes);
+  getTransceiver(inBytesTrans);
   if((millis()-lastMillis)>1000){
     lastMillis = millis();
     debugSerialS.send(lastMillis);
   }
   // ------------ SERIAL IN ------------- //
   if(ledSerialR.match(inBytes)){ // LED 1
-    if(ledSerialR.data(inBytes)==0)digitalWrite(ledPin, LOW);
+    if(ledSerialR.dataBool(inBytes)==0)digitalWrite(ledPin, LOW);
     else digitalWrite(ledPin, HIGH);
   }
+
+  // if(ledTransR.match(inBytes)){ // LED 1
+  //   if(ledTransR.dataBool(inBytes))digitalWrite(ledPin, LOW);
+  //   else digitalWrite(ledPin, HIGH);
+  // }
 
   clearInput();
 }
@@ -63,8 +73,16 @@ void getSerial(byte* inBytes){
     return;
   }
 }
+void getTransceiver(byte* inBytesTrans){
+  radio.startListening();
+  if (radio.available()) {
+    radio.read((char*)inBytes,4);
+  }
+  radio.stopListening();
+}
 void clearInput() {
   // clearInput: functie om de array met inkomende data leeg te maken,
   // om te voorkomen dat de match nog een keer gelijk is.
   memset(inBytes,0,sizeof(inBytes));
+  memset(inBytesTrans,0,sizeof(inBytesTrans));
 }
