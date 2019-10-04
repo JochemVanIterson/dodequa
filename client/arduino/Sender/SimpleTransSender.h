@@ -16,6 +16,7 @@ class SimpleTransSender {
     void sendFloat(double value);
     void sendBool(bool value);
   private:
+    void sendData(byte b1, byte b2);
     RF24 *radio;
     byte dataOut[5];
     int id;
