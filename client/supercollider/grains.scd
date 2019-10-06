@@ -11,7 +11,6 @@ currentEnvironment;
 };
 
 ~calcVariables = {
-	"CalcVariables start".postln;
 	//-------------- Position --------------//
 	~position = ~map.value(~rotatieOrientatie, -100, 100, 0, 254);
 	// (~rotatieOrientatie+100)/200*254;
@@ -32,7 +31,6 @@ currentEnvironment;
 	},{
 		~decay = 500;
 	});
-	"Decay: ".post; ~decay.postln;
 	//decay tussen 500 en 3000 ms adv snelheid
 
 	//-------------- Position Jitter --------------//
@@ -78,22 +76,51 @@ currentEnvironment;
 	},{
 		~pitch = 180;
 	});
-	"CalcVariables stop".postln;
 };
 
 thisProcess.openUDPPort(3002);
-~o = OSCFunc(
+~oscAcc = OSCFunc(
 	{ arg msg,time,addr,recvPort;
+		msg.postln;
 		~snelheid=msg[1]*msg[2]*msg[3];
 	},
 	'/serialdata/acc/calc'
+);
+~oscMag = OSCFunc(
+	{ arg msg,time,addr,recvPort;
+		msg.postln;
+		~rotatieOrientatieX = msg[1];
+		~rotatieOrientatieY = msg[2];
+		~rotatieOrientatieZ = msg[3];
+		~rotatieOrientatie = msg[1]*msg[2]*msg[3];
+	},
+	'/serialdata/mag/calc'
+);
+~oscGyro = OSCFunc(
+	{ arg msg,time,addr,recvPort;
+		msg.postln;
+		~rotatieSnelheidX = msg[1];
+		~rotatieSnelheidY = msg[2];
+		~rotatieSnelheidZ = msg[3];
+		~rotatieSnelheid = msg[1]*msg[2]*msg[3];
+	},
+	'/serialdata/gyro/calc'
 );
 
 
 
 //-------------- Variabelen --------------//
 ~rotatieOrientatie = 34;
-~rotatieSnelheid = 35;
+~rotatieSnelheid = 34;
+
+~rotatieOrientatieX = 34;
+~rotatieOrientatieY = 34;
+~rotatieOrientatieZ = 34;
+
+~rotatieSnelheidX = 35;
+~rotatieSnelheidY = 35;
+~rotatieSnelheidZ = 35;
+
 ~snelheid = 75;
 
 ~rotatieOrientatieCloud = 20;
@@ -116,7 +143,8 @@ thisProcess.openUDPPort(3002);
 ~buttonFour = 0;
 
 TempoClock.default.sched(0.1, {
-	"CalcVariables ".postln;~calcVariables.value;
+	// "CalcVariables ".postln;
+	~calcVariables.value;
 	0.1; //Herhaal iedere nn seconden
 });
 

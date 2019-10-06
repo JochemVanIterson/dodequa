@@ -61,7 +61,7 @@ if(argv['disable-osc']==undefined){
     oscHandler.send("/serialdata/acc/calc", appData.object.sensor.acc);
     oscHandler.send("/serialdata/mag/calc", appData.object.sensor.mag);
     oscHandler.send("/serialdata/gyro/calc", appData.object.sensor.gyro);
-  }, 1000);
+  }, 500);
 } else console.log(chalk.yellow("OSC disabled"));
 
 // ---------------------------- Serial handler ----------------------------- //

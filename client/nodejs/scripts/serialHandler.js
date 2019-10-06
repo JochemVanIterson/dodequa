@@ -53,7 +53,7 @@ module.exports = class {
         // Magneto
         if(self.serialIDMatch(buf, 120)){ //Magneto X
           console.log("magx", self.serialCalcFloat(buf));
-          appData.object.sensor.mag[0] = self.serialserialCalcFloatCalc(buf);
+          appData.object.sensor.mag[0] = self.serialCalcFloat(buf);
         } else if(self.serialIDMatch(buf, 121)){ //Magneto Y
           console.log("magy", self.serialCalcFloat(buf));
           appData.object.sensor.mag[1] = self.serialCalcFloat(buf);
@@ -65,18 +65,23 @@ module.exports = class {
         // Button
         if(self.serialIDMatch(buf, 130)){ //Button 1
           console.log("button1", self.serialCalcBool(buf));
+          appData.object.buttons[0] = self.serialCalcBool(buf);
         } else if(self.serialIDMatch(buf, 131)){ //Button 2
           console.log("button2", self.serialCalcBool(buf));
+          appData.object.buttons[1] = self.serialCalcBool(buf);
         } else if(self.serialIDMatch(buf, 132)){ //Button 3
           console.log("button3", self.serialCalcBool(buf));
+          appData.object.buttons[2] = self.serialCalcBool(buf);
         } else if(self.serialIDMatch(buf, 133)){ //Button 4
           console.log("button4", self.serialCalcBool(buf));
+          appData.object.buttons[3] = self.serialCalcBool(buf);
         }
       }
     }); // will have 4 bytes per data event
   }
   serialMatch(buf){
     let bufferValues = buf.toJSON().data;
+    console.log(bufferValues);
     return (bufferValues[0]==this.matchIn[0]) && (bufferValues[4]==this.matchIn[1]);
   }
   serialIDMatch(buf, id){
