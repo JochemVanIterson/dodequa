@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 
-#include "SimpleTransSender.h"
+// #include "SimpleTransSender.h"
 
 class SimpleSerialReceiver {
   public:
@@ -15,7 +15,7 @@ class SimpleSerialReceiver {
     long dataInt(byte *inBytes);
     double dataFloat(byte *inBytes);
     bool dataBool(byte *inBytes);
-    void pass(SimpleTransSender* sender, byte *inBytes);
+    // void pass(SimpleTransSender* sender, byte *inBytes);
 
   private:
     byte matchData[2];
