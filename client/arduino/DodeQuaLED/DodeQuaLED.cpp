@@ -1,65 +1,70 @@
 #include "DodeQuaLED.h"
 
-DodeQuaLED::DodequaLED() {
-  FastLED.addLeds<WS2801, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
-  LEDS.setBrightness(83);
+DodeQuaLED::DodeQuaLED(){}
+DodeQuaLED::DodeQuaLED(int brightness){
+  FastLED.addLeds<WS2801, DATA_PIN, CLOCK_PIN, RGB>(this->leds, NUM_LEDS);
+  LEDS.setBrightness(brightness);
 }
 
-void DodeQuaLED::setLEDS(gyroX, gyroY, gyroZ) {
-  this->redInput = gyroX;
-  this->greenInput = gyroY;
-  this ->blueInput = gyroZ;
+void DodeQuaLED::setLED(int index, int r, int g, int b) {
+  this->leds[index] = CRGB(r, g, b);
+}
 
-  RED = map(redInput, 0, 360, 0, 255);
-  GREEN = map(greenInput, 0, 360, 0 255);
-  BLUE = map(blueInput, 0, 360, 0, 255);
+void DodeQuaLED::setLEDS(int r, int g, int b) {
+  this->setLED(0, r, g, b);
+  this->setLED(1, b, r, g);
+}
 
-  leds[0] = CRGB(RED, GREEN, BLUE);
-  leds[1] = CRGB(GREEN, BLUE, RED);
-  FastLED.show();
-  delay(10);
+void DodeQuaLED::showLEDS(int delTime) {
+  if(millis() >= this->lastUpdate + delTime) {
+    Serial.println(this->lastUpdate + delTime);
+    FastLED.show();
+    this->lastUpdate = millis();
+  }
 }
 
 void DodeQuaLED::randomLEDS() {
-  RED = random(0, 250);
-  GREEN = random(0,250);
-  BLUE = random(0,250);
+  if(millis() >= lastChanged+500) {
+    Serial.println("Loop");
+    this->red   = random(0, 255);
+    this->green = random(0, 255);
+    this->blue  = random(0, 255);
+    this->setLEDS(this->red, this->green, this->blue);
+    FastLED.show();
+    this->lastChanged = millis();
+  }
+}
 
-  leds[0] = CRGB(RED, GREEN, BLUE);
-  leds[1] = CRGB(GREEN, BLUE, RED);
-  FastLED.show();
-  delay(500);
+void DodeQuaLED::initRainbowLEDS(int speed) {
+  this->red = 255;
+  this->green = 0;
+  this->blue = 0;
+  this->rainbowSpeed = speed;
 }
 
 void DodeQuaLED::rainbowLEDS() {
-  RED = 250;
-  GREEN = 0;
-  BLUE = 0;
-  while(RED > 0) {
-    RED--;
-    GREEN++;
-    leds[0] = CRGB(RED, GREEN, BLUE);
-    leds[1] = CRGB(GREEN, BLUE, RED);
-    FastLED.show();
-    fadeallfast();
-    delay(5);
-  }
-  while(GREEN > 0) {
-    GREEN--;
-    BLUE++;
-    leds[0] = CRGB(RED, GREEN, BLUE);
-    leds[1] = CRGB(GREEN, BLUE, RED);
-    FastLED.show();
-    fadeallfast();
-    delay(5);
-  }
-  while(BLUE > 0) {
-    BLUE--;
-    RED++;
-    leds[0] = CRGB(RED, GREEN, BLUE);
-    leds[1] = CRGB(GREEN, BLUE, RED);
-    FastLED.show();
-    fadeallfast();
-    delay(5);
+  if(this->red > 0 && this->green < 255 && this->blue == 0) {
+    if(millis() >= this->lastChanged+this->rainbowSpeed) {
+      this->red--;
+      this->green++;
+      this->setLEDS(this->red, this->green, this->blue);
+      this->lastChanged = millis();
+    }
+  } else
+  if(this->red == 0 && this->green > 0 && this->blue < 255) {
+    if(millis() >= this->lastChanged+this->rainbowSpeed) {
+      this->green--;
+      this->blue++;
+      this->setLEDS(this->red, this->green, this->blue);
+      this->lastChanged = millis();
+    }
+  } else
+  if(this->red < 255 && this->green == 0 && this->blue > 0) {
+    if(millis() >= this->lastChanged+this->rainbowSpeed) {
+      this->blue--;
+      this->red++;
+      this->setLEDS(this->red, this->green, this->blue);
+      this->lastChanged = millis();
+    }
   }
 }

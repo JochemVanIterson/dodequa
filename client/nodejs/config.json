@@ -1,0 +1,16 @@
+{
+  "objectID":"dodec01",
+  "socket":{
+    "url":"audioware.nl",
+    "port":3000
+  },
+  "serial":{
+    "port":"/dev/tty.usbmodem14101",
+    "baud":115200
+  },
+  "osc":{
+    "address":"localhost",
+    "inPort":3001,
+    "outPort":3002
+  }
+}

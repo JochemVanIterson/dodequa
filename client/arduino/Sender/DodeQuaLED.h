@@ -19,16 +19,24 @@ class DodeQuaLED {
     void showLEDS(int delTime);
     void randomLEDS(); // for a random switching color thing.
     void rainbowLEDS(); // for rainbows.
+    void pulseLEDS(); // for rainbows.
     void initRainbowLEDS(int speed);
+    void initRandomLEDS(int speed);
+    void initPulseLEDS(int speed);
 
   private:
-    int red;
-    int green;
-    int blue;
+    int red = 0;
+    int green = 0;
+    int blue = 0;
+
+    int brightness;
 
     CRGB leds[NUM_LEDS];
     unsigned long lastUpdate = 0;
     unsigned long lastChanged = 0;
+    bool pulseDirection = false;
 
     int rainbowSpeed = 20;
+    int randomSpeed = 500;
+    int pulseSpeed = 50;
 };

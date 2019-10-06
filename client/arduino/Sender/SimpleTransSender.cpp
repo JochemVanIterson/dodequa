@@ -54,6 +54,8 @@ void SimpleTransSender::sendData(byte b1, byte b2){
   dataOut[3] = b2;
   if (!radio->write(&dataOut, sizeof(dataOut) )){
     Serial.println(F("Write failed"));
-  } else Serial.println(F("Write success"));
+  } else {
+    // Serial.println(F("Write success"));
+  }
 //  delay(10);
 }
