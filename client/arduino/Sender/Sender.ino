@@ -16,7 +16,24 @@
 #include "SmoothAnalog.h"
 
 // ---------------------------------- PINS ---------------------------------- //
-//int ledPin = 13;
+const int buttonLed1Pin = 3;
+const int buttonLed2Pin = 4;
+const int buttonLed3Pin = 5;
+const int buttonLed4Pin = 6;
+const int button1Pin = 14;
+const int button2Pin = 15;
+const int button3Pin = 16;
+const int button4Pin = 17;
+
+// ----------------------------- DIGITAL INPUTS ----------------------------- //
+SmoothDigital button1;
+SmoothDigital button2;
+SmoothDigital button3;
+SmoothDigital button4;
+int button1State;
+int button2State;
+int button3State;
+int button4State;
 
 // ---------------------------------- 9DOF ---------------------------------- //
 Adafruit_BNO055 bno = Adafruit_BNO055();
@@ -38,6 +55,10 @@ SimpleTransSender transSendGyroZ;
 SimpleTransSender transSendEulerX;
 SimpleTransSender transSendEulerY;
 SimpleTransSender transSendEulerZ;
+SimpleTransSender transSendButton1;
+SimpleTransSender transSendButton2;
+SimpleTransSender transSendButton3;
+SimpleTransSender transSendButton4;
 
 // ------------------------------- Serial vars ------------------------------ //
 byte inBytes[5];
@@ -55,6 +76,10 @@ SimpleSerialSender serialSendGyroZ;
 SimpleSerialSender serialSendEulerX;
 SimpleSerialSender serialSendEulerY;
 SimpleSerialSender serialSendEulerZ;
+SimpleSerialSender serialSendButton1;
+SimpleSerialSender serialSendButton2;
+SimpleSerialSender serialSendButton3;
+SimpleSerialSender serialSendButton4;
 
 // -------------------------------- RGB LED --------------------------------- //
 DodeQuaLED rgbLed(100);
@@ -94,6 +119,10 @@ void setup(void){
   serialSendEulerX = SimpleSerialSender(matchOut[0], matchOut[1], 120);
   serialSendEulerY = SimpleSerialSender(matchOut[0], matchOut[1], 121);
   serialSendEulerZ = SimpleSerialSender(matchOut[0], matchOut[1], 122);
+  serialSendButton1 = SimpleSerialSender(matchOut[0], matchOut[1], 130);
+  serialSendButton2 = SimpleSerialSender(matchOut[0], matchOut[1], 131);
+  serialSendButton3 = SimpleSerialSender(matchOut[0], matchOut[1], 132);
+  serialSendButton4 = SimpleSerialSender(matchOut[0], matchOut[1], 133);
 
   // -------------- Init Transceiver ports -------------- //
   transSendAccX = SimpleTransSender(&radio, matchOut[0], matchOut[1], 100);
@@ -105,6 +134,25 @@ void setup(void){
   transSendEulerX = SimpleTransSender(&radio, matchOut[0], matchOut[1], 120);
   transSendEulerY = SimpleTransSender(&radio, matchOut[0], matchOut[1], 121);
   transSendEulerZ = SimpleTransSender(&radio, matchOut[0], matchOut[1], 122);
+  transSendButton1 = SimpleTransSender(&radio, matchOut[0], matchOut[1], 130);
+  transSendButton2 = SimpleTransSender(&radio, matchOut[0], matchOut[1], 131);
+  transSendButton3 = SimpleTransSender(&radio, matchOut[0], matchOut[1], 132);
+  transSendButton4 = SimpleTransSender(&radio, matchOut[0], matchOut[1], 133);
+
+  // -------------- Buttons -------------- //
+  pinMode(button1Pin, INPUT_PULLUP);
+  pinMode(button2Pin, INPUT_PULLUP);
+  pinMode(button3Pin, INPUT_PULLUP);
+  pinMode(button4Pin, INPUT_PULLUP);
+  pinMode(buttonLed1Pin, OUTPUT);
+  pinMode(buttonLed2Pin, OUTPUT);
+  pinMode(buttonLed3Pin, OUTPUT);
+  pinMode(buttonLed4Pin, OUTPUT);
+
+  button1 = SmoothDigital(button1Pin, 2);
+  button2 = SmoothDigital(button2Pin, 2);
+  button3 = SmoothDigital(button3Pin, 2);
+  button4 = SmoothDigital(button4Pin, 2);
 }
 
 void loop(void){
@@ -116,6 +164,8 @@ void loop(void){
 
   // sendSerialData(&acc, &gyro, &euler);
   sendTransceiverData(&acc, &gyro, &euler);
+
+  handleButtons();
 
   double speed = accSmoother.read(totalAcc(&acc)) + accSmoother.read(totalAcc(&gyro));
   if(speed == 0.) {
@@ -197,4 +247,31 @@ double totalAcc(imu::Vector<3> *acc){
   double y = acc->y();
   double z = acc->z();
   return sqrt( (x*x) + (y*y) + (z*z) );
+}
+void handleButtons(){
+  // put your main code here, to run repeatedly:
+  button1State = button1.read();
+  if(button1State != -1) { //button has changed
+    if(button1State != 1) digitalWrite(buttonLed1Pin, HIGH);
+    else digitalWrite(buttonLed1Pin, HIGH);
+    transSendButton1.sendBool(button1State);
+  }
+  button2State = button2.read();
+  if(button2State != -1) { //button has changed
+    if(button2State != 1) digitalWrite(buttonLed2Pin, HIGH);
+    else digitalWrite(buttonLed2Pin, HIGH);
+    transSendButton2.sendBool(button2State);
+  }
+  button3State = button3.read();
+  if(button3State != -1) { //button has changed
+    if(button3State != 1) digitalWrite(buttonLed3Pin, HIGH);
+    else digitalWrite(buttonLed3Pin, HIGH);
+    transSendButton3.sendBool(button3State);
+  }
+  button4State = button4.read();
+  if(button4State != -1) { //button has changed
+    if(button4State != 1) digitalWrite(buttonLed4Pin, HIGH);
+    else digitalWrite(buttonLed4Pin, HIGH);
+    transSendButton4.sendBool(button4State);
+  }
 }
