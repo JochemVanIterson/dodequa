@@ -26,6 +26,17 @@ global.argv = require('minimist')(process.argv);
 global.debug = argv.debug || argv.d;
 
 global.appConfig={}
+global.appData = {
+  object:{
+    sensor:{
+      acc: [0., 0., 0.],
+      mag: [0., 0., 0.],
+      gyro:[0., 0., 0.]
+    },
+    buttons:[0, 0, 0, 0]
+  },
+  cloud:{}
+};
 
 if(fs.existsSync('./config.json')){
   appConfig = require('./config.json');
@@ -46,7 +57,10 @@ tools.statusPrinter(statusIndex++, "Init OSC");
 if(argv['disable-osc']==undefined){
   oscHandler.init();
   setInterval(()=>{
-    oscHandler.send("/serialdata/acc/calc", [1., 1., (Date.now()-startTime)/1000.]);
+    // oscHandler.send("/serialdata/acc/calc", [1., 1., (Date.now()-startTime)/1000.]);
+    oscHandler.send("/serialdata/acc/calc", appData.object.sensor.acc);
+    oscHandler.send("/serialdata/mag/calc", appData.object.sensor.mag);
+    oscHandler.send("/serialdata/gyro/calc", appData.object.sensor.gyro);
   }, 1000);
 } else console.log(chalk.yellow("OSC disabled"));
 
