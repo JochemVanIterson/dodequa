@@ -29,52 +29,56 @@ module.exports = class {
         // Accelerometer
         if(self.serialIDMatch(buf, 100)){ //Accelerometer X
           console.log("accx", self.serialCalcFloat(buf));
-          appData.object.sensor.acc[0] = self.serialCalcFloat(buf);
+          appData.object.sensor.acc[0] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 101)){ //Accelerometer Y
           console.log("accy", self.serialCalcFloat(buf));
-          appData.object.sensor.acc[1] = self.serialCalcFloat(buf);
+          appData.object.sensor.acc[1] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 102)){ //Accelerometer Z
           console.log("accz", self.serialCalcFloat(buf));
-          appData.object.sensor.acc[2] = self.serialCalcFloat(buf);
+          appData.object.sensor.acc[2] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else
 
         // Gyro
         if(self.serialIDMatch(buf, 110)){ //Gyro X
           console.log("gyrx", self.serialCalcFloat(buf));
-          appData.object.sensor.gyro[0] = self.serialCalcFloat(buf);
+          appData.object.sensor.gyro[0] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 111)){ //Gyro Y
           console.log("gyry", self.serialCalcFloat(buf));
-          appData.object.sensor.gyro[1] = self.serialCalcFloat(buf);
+          appData.object.sensor.gyro[1] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 112)){ //Gyro Z
           console.log("gyrz", self.serialCalcFloat(buf));
-          appData.object.sensor.gyro[2] = self.serialCalcFloat(buf);
+          appData.object.sensor.gyro[2] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else
 
         // Magneto
         if(self.serialIDMatch(buf, 120)){ //Magneto X
           console.log("magx", self.serialCalcFloat(buf));
-          appData.object.sensor.mag[0] = self.serialCalcFloat(buf);
+          appData.object.sensor.mag[0] = tools.scale(self.serialCalcFloat(buf), 0, 360, -100, 100);
         } else if(self.serialIDMatch(buf, 121)){ //Magneto Y
           console.log("magy", self.serialCalcFloat(buf));
-          appData.object.sensor.mag[1] = self.serialCalcFloat(buf);
+          appData.object.sensor.mag[1] = tools.scale(self.serialCalcFloat(buf), -120, 120, -100, 100);
         } else if(self.serialIDMatch(buf, 122)){ //Magneto Z
           console.log("magz", self.serialCalcFloat(buf));
-          appData.object.sensor.mag[2] = self.serialCalcFloat(buf);
+          appData.object.sensor.mag[2] = tools.scale(self.serialCalcFloat(buf), -120, 120, -100, 100);
         } else
 
         // Button
         if(self.serialIDMatch(buf, 130)){ //Button 1
           console.log("button1", self.serialCalcBool(buf));
           appData.object.buttons[0] = self.serialCalcBool(buf);
+          oscHandler.send("/serialdata/buttons", appData.object.buttons);
         } else if(self.serialIDMatch(buf, 131)){ //Button 2
           console.log("button2", self.serialCalcBool(buf));
           appData.object.buttons[1] = self.serialCalcBool(buf);
+          oscHandler.send("/serialdata/buttons", appData.object.buttons);
         } else if(self.serialIDMatch(buf, 132)){ //Button 3
           console.log("button3", self.serialCalcBool(buf));
           appData.object.buttons[2] = self.serialCalcBool(buf);
+          oscHandler.send("/serialdata/buttons", appData.object.buttons);
         } else if(self.serialIDMatch(buf, 133)){ //Button 4
           console.log("button4", self.serialCalcBool(buf));
           appData.object.buttons[3] = self.serialCalcBool(buf);
+          oscHandler.send("/serialdata/buttons", appData.object.buttons);
         }
       }
     }); // will have 4 bytes per data event

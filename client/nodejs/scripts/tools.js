@@ -15,3 +15,9 @@ exports.encryption = function(key, iv, data){
 exports.statusPrinter = function(index,message){
   console.log(chalk.cyan(`(${index}/${statusTotal}) ${message}`));
 }
+exports.scale = function(value, inMin, inMax, outMin, outMax){
+	let deltaIn = inMax - inMin;
+	let deltaOut = outMax - outMin;
+	let scale = ((value - inMin)/deltaIn);
+	return scale*deltaOut+outMin;
+};
