@@ -8,25 +8,27 @@
 // ground, and power), like the LPD8806, define both DATA_PIN and CLOCK_PIN
 #define DATA_PIN 3
 #define CLOCK_PIN 2
-#define Random_Max 100
-#define Random_Min -100
 
 class DodeQuaLED {
   public:
     DodeQuaLED();
+    DodeQuaLED(int brightness);
 
-    void setLEDS(gyroX, gyroY, gyroZ); // xyz = rgb, expected is gyro data from 0 - 360.
+    void setLED(int index, int r, int g, int b);
+    void setLEDS(int r, int g, int b);
+    void showLEDS(int delTime);
     void randomLEDS(); // for a random switching color thing.
     void rainbowLEDS(); // for rainbows.
+    void initRainbowLEDS(int speed);
+
   private:
-    // Define the array of leds
+    int red;
+    int green;
+    int blue;
+
     CRGB leds[NUM_LEDS];
+    unsigned long lastUpdate = 0;
+    unsigned long lastChanged = 0;
 
-    float redInput;   // Assign to gyro.x()
-    float greenInput; // Assign to gyro.y()
-    float blueInput;  // Assign to gyro.z()
-
-    int RED;    //
-    int GREEN;  // 0 - 255, might need mapping
-    int BLUE;   //
+    int rainbowSpeed = 20;
 };
