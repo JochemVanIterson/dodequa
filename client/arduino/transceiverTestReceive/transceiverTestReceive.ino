@@ -19,7 +19,7 @@ RF24 radio(7,8);
 /**********************************************************/
 
 byte addresses[][6] = {"01Rec","01Sen"};
-byte sendableArray[5] = {253, 100, 0, 0, 101};
+byte sendableArray[5] = {252, 100, 0, 0, 101};
 int matchIn[2]  = {101, 251};
 int matchOut[2] = {252, 100};
 byte inBytesTrans[5] = {0};
@@ -40,9 +40,9 @@ SimpleTransReceiver transReceiverEulerZ;
 
 void setup() {
   Serial.begin(115200);
-  printf_begin();
-  Serial.println(F("RF24/examples/GettingStarted"));
-  Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
+//  printf_begin();
+//  Serial.println(F("RF24/examples/GettingStarted"));
+//  Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
 
   radio.begin();
 
@@ -54,14 +54,14 @@ void setup() {
   // Open a writing and reading pipe on each radio, with opposite addresses
   radio.openWritingPipe(addresses[0]);
   radio.openReadingPipe(1,addresses[1]);
-      
+
   // Start the radio listening for data
   radio.enableDynamicPayloads() ;
   radio.setAutoAck( true ) ;
   radio.powerUp() ;
   radio.startListening();
 
-  radio.printDetails();
+  // radio.printDetails();
 
 //  serialSenderTest = SimpleSerialSender(253, 101, 100);
 //  senderTest = SimpleTransSender(&radio, 253, 101, 100);
@@ -72,14 +72,14 @@ void setup() {
   transReceiverGyroX = SimpleTransReceiver(&radio, 252, 100, 110);
   transReceiverGyroY = SimpleTransReceiver(&radio, 252, 100, 111);
   transReceiverGyroZ = SimpleTransReceiver(&radio, 252, 100, 112);
-  
+
   transReceiverEulerX = SimpleTransReceiver(&radio, 252, 100, 120);
   transReceiverEulerY = SimpleTransReceiver(&radio, 252, 100, 121);
   transReceiverEulerZ = SimpleTransReceiver(&radio, 252, 100, 122);
 }
 
 void loop() {
-/****************** Pong Back Role ***************************/  
+/****************** Pong Back Role ***************************/
   if(radio.available()){                                          // Variable for the received timestamp
 //    while (radio.available()) {                                   // While there is data ready
       radio.read( &inBytesTrans, sizeof(inBytesTrans) );          // Get the payload
@@ -108,7 +108,7 @@ void loop() {
       } else if(transReceiverEulerZ.match(inBytesTrans)){
         Serial.write(inBytesTrans, sizeof(inBytesTrans));
       }
-      
+
 //    radio.stopListening();                                        // First, stop listening so we can talk
 //    radio.write( &inBytesTrans, sizeof(inBytesTrans) );           // Send the final one back.
 //    radio.startListening();                                       // Now, resume listening so we catch the next packets.
@@ -122,7 +122,6 @@ void loop() {
 //    Serial.print(" ");
 //    Serial.print(inBytesTrans[3]);
 //    Serial.print(" ");
-//    Serial.println(inBytesTrans[4]);  
+//    Serial.println(inBytesTrans[4]);
   }
 } // Loop
-
