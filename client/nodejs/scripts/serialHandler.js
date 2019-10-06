@@ -33,12 +33,6 @@ module.exports = class {
           console.log("accy", self.serialCalc(buf));
         } else if(self.serialIDMatch(buf, 102)){ //Accelerometer Z
           console.log("accz", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 103)){ //Accelerometer raw X
-          console.log("raccx", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 104)){ //Accelerometer raw Y
-          console.log("raccy", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 105)){ //Accelerometer raw Z
-          console.log("raccz", self.serialCalc(buf));
         } else
 
         // Gyro
@@ -48,12 +42,6 @@ module.exports = class {
           console.log("gyry", self.serialCalc(buf));
         } else if(self.serialIDMatch(buf, 112)){ //Gyro Z
           console.log("gyrz", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 113)){ //Gyro raw X
-          console.log("rgyrx", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 114)){ //Gyro raw Y
-          console.log("rgyry", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 115)){ //Gyro raw Z
-          console.log("rgyrz", self.serialCalc(buf));
         } else
 
         // Magneto
@@ -63,12 +51,6 @@ module.exports = class {
           console.log("magy", self.serialCalc(buf));
         } else if(self.serialIDMatch(buf, 122)){ //Magneto Z
           console.log("magz", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 123)){ //Magneto raw X
-          console.log("rmagx", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 124)){ //Magneto raw Y
-          console.log("rmagy", self.serialCalc(buf));
-        } else if(self.serialIDMatch(buf, 125)){ //Magneto raw Z
-          console.log("rmagz", self.serialCalc(buf));
         } else
 
         // Button
