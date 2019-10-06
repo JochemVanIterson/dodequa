@@ -36,7 +36,7 @@ exports.send = function(address, dataArray){
       value: itm
     })
   }
-  console.log("data", data)
+  // console.log("data", data)
   udpPort.send({
       address: address,
       args: data

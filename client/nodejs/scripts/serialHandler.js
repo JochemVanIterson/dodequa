@@ -24,41 +24,41 @@ module.exports = class {
 
     this.parser = this.port.pipe(new ByteLength({length: 5}))
     this.parser.on('data', function(buf){
-      console.log("buf", buf);
+      // console.log("buf", buf);
       if(self.serialMatch(buf)){
         // Accelerometer
         if(self.serialIDMatch(buf, 100)){ //Accelerometer X
-          console.log("accx", self.serialCalcFloat(buf));
+          // console.log("accx", self.serialCalcFloat(buf));
           appData.object.sensor.acc[0] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 101)){ //Accelerometer Y
-          console.log("accy", self.serialCalcFloat(buf));
+          // console.log("accy", self.serialCalcFloat(buf));
           appData.object.sensor.acc[1] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 102)){ //Accelerometer Z
-          console.log("accz", self.serialCalcFloat(buf));
+          // console.log("accz", self.serialCalcFloat(buf));
           appData.object.sensor.acc[2] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else
 
         // Gyro
         if(self.serialIDMatch(buf, 110)){ //Gyro X
-          console.log("gyrx", self.serialCalcFloat(buf));
+          // console.log("gyrx", self.serialCalcFloat(buf));
           appData.object.sensor.gyro[0] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 111)){ //Gyro Y
-          console.log("gyry", self.serialCalcFloat(buf));
+          // console.log("gyry", self.serialCalcFloat(buf));
           appData.object.sensor.gyro[1] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else if(self.serialIDMatch(buf, 112)){ //Gyro Z
-          console.log("gyrz", self.serialCalcFloat(buf));
+          // console.log("gyrz", self.serialCalcFloat(buf));
           appData.object.sensor.gyro[2] = tools.scale(self.serialCalcFloat(buf), -100, 100, -100, 100);
         } else
 
         // Magneto
         if(self.serialIDMatch(buf, 120)){ //Magneto X
-          console.log("magx", self.serialCalcFloat(buf));
+          // console.log("magx", self.serialCalcFloat(buf));
           appData.object.sensor.mag[0] = tools.scale(self.serialCalcFloat(buf), 0, 360, -100, 100);
         } else if(self.serialIDMatch(buf, 121)){ //Magneto Y
-          console.log("magy", self.serialCalcFloat(buf));
+          // console.log("magy", self.serialCalcFloat(buf));
           appData.object.sensor.mag[1] = tools.scale(self.serialCalcFloat(buf), -120, 120, -100, 100);
         } else if(self.serialIDMatch(buf, 122)){ //Magneto Z
-          console.log("magz", self.serialCalcFloat(buf));
+          // console.log("magz", self.serialCalcFloat(buf));
           appData.object.sensor.mag[2] = tools.scale(self.serialCalcFloat(buf), -120, 120, -100, 100);
         } else
 
@@ -85,7 +85,7 @@ module.exports = class {
   }
   serialMatch(buf){
     let bufferValues = buf.toJSON().data;
-    console.log(bufferValues);
+    // console.log(bufferValues);
     return (bufferValues[0]==this.matchIn[0]) && (bufferValues[4]==this.matchIn[1]);
   }
   serialIDMatch(buf, id){
@@ -125,7 +125,7 @@ module.exports = class {
     buf.writeUInt8(Math.floor(data/256), 2);
     buf.writeUInt8(data%256, 3);
     buf.writeUInt8(this.matchOut[1], 4);
-    console.log(buf);
+    // console.log(buf);
     this.port.write(buf, function(err) {
       if (err) {
         console.log('Error on write: ', err.message)
