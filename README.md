@@ -11,11 +11,11 @@ Shared repository for CSD 3 project
 - [x] Serial
   - [x] Send
   - [x] Receive
-- [ ] NodeJS
-  - [ ] Serial Input
-  - [ ] Serial Output
-  - [ ] OSC Input
-  - [ ] OSC Output
+- [x] NodeJS
+  - [x] Serial Input
+  - [x] Serial Output
+  - [x] OSC Input
+  - [x] OSC Output
 - [ ] Supercollider
   - [x] OSC input
   - [x] Meta-parameter conversion
