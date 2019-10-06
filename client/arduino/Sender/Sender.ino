@@ -12,11 +12,15 @@
 #include "SimpleTransSender.h"
 #include "SimpleTransReceiver.h"
 
+#include "DodeQuaLED.h"
+#include "SmoothAnalog.h"
+
 // ---------------------------------- PINS ---------------------------------- //
 //int ledPin = 13;
 
 // ---------------------------------- 9DOF ---------------------------------- //
 Adafruit_BNO055 bno = Adafruit_BNO055();
+SmoothAnalog accSmoother(100);
 
 // ---------------------------- Transceiver vars ---------------------------- //
 RF24 radio(7,8);
@@ -25,8 +29,6 @@ byte sendableArray[5] = {253, 100, 0, 0, 101};
 byte inBytesTrans[5] = {0};
 
 // ------------------------------ TRANSCEIVERS ------------------------------ //
-SimpleTransReceiver receiverTest;
-
 SimpleTransSender transSendAccX;
 SimpleTransSender transSendAccY;
 SimpleTransSender transSendAccZ;
@@ -44,15 +46,21 @@ int matchOut[2] = {252, 100};
 unsigned long lastMillis = 0;
 
 // -------------------------------- SERIALS --------------------------------- //
-//SimpleSerialSender serialSendAccX;
-//SimpleSerialSender serialSendAccY;
-//SimpleSerialSender serialSendAccZ;
-//SimpleSerialSender serialSendGyroX;
-//SimpleSerialSender serialSendGyroY;
-//SimpleSerialSender serialSendGyroZ;
-//SimpleSerialSender serialSendEulerX;
-//SimpleSerialSender serialSendEulerY;
-//SimpleSerialSender serialSendEulerZ;
+SimpleSerialSender serialSendAccX;
+SimpleSerialSender serialSendAccY;
+SimpleSerialSender serialSendAccZ;
+SimpleSerialSender serialSendGyroX;
+SimpleSerialSender serialSendGyroY;
+SimpleSerialSender serialSendGyroZ;
+SimpleSerialSender serialSendEulerX;
+SimpleSerialSender serialSendEulerY;
+SimpleSerialSender serialSendEulerZ;
+
+// -------------------------------- RGB LED --------------------------------- //
+DodeQuaLED rgbLed(100);
+unsigned long lastPGMChange;
+int PGMChangeSpeed = 5000;
+int pgmID = 2;
 
 void setup(void){
   // -------------- Open serial -------------- //
@@ -66,7 +74,7 @@ void setup(void){
   openTransceiver();
 
   // -------------- Set Pins -------------- //
-//  pinMode(ledPin, OUTPUT);
+  //  pinMode(ledPin, OUTPUT);
 
   // -------------- Init 9DOF Sensor -------------- //
   if(!bno.begin()){
@@ -77,19 +85,17 @@ void setup(void){
   bno.setExtCrystalUse(true);
 
   // -------------- Init Serial ports -------------- //
-//  serialSendAccX = SimpleSerialSender(matchOut[0], matchOut[1], 100);
-//  serialSendAccY = SimpleSerialSender(matchOut[0], matchOut[1], 101);
-//  serialSendAccZ = SimpleSerialSender(matchOut[0], matchOut[1], 102);
-//  serialSendGyroX = SimpleSerialSender(matchOut[0], matchOut[1], 110);
-//  serialSendGyroY = SimpleSerialSender(matchOut[0], matchOut[1], 111);
-//  serialSendGyroZ = SimpleSerialSender(matchOut[0], matchOut[1], 112);
-//  serialSendEulerX = SimpleSerialSender(matchOut[0], matchOut[1], 120);
-//  serialSendEulerY = SimpleSerialSender(matchOut[0], matchOut[1], 121);
-//  serialSendEulerZ = SimpleSerialSender(matchOut[0], matchOut[1], 122);
+  serialSendAccX = SimpleSerialSender(matchOut[0], matchOut[1], 100);
+  serialSendAccY = SimpleSerialSender(matchOut[0], matchOut[1], 101);
+  serialSendAccZ = SimpleSerialSender(matchOut[0], matchOut[1], 102);
+  serialSendGyroX = SimpleSerialSender(matchOut[0], matchOut[1], 110);
+  serialSendGyroY = SimpleSerialSender(matchOut[0], matchOut[1], 111);
+  serialSendGyroZ = SimpleSerialSender(matchOut[0], matchOut[1], 112);
+  serialSendEulerX = SimpleSerialSender(matchOut[0], matchOut[1], 120);
+  serialSendEulerY = SimpleSerialSender(matchOut[0], matchOut[1], 121);
+  serialSendEulerZ = SimpleSerialSender(matchOut[0], matchOut[1], 122);
 
   // -------------- Init Transceiver ports -------------- //
-  receiverTest = SimpleTransReceiver(&radio, matchOut[0], matchOut[1], 100);
-
   transSendAccX = SimpleTransSender(&radio, matchOut[0], matchOut[1], 100);
   transSendAccY = SimpleTransSender(&radio, matchOut[0], matchOut[1], 101);
   transSendAccZ = SimpleTransSender(&radio, matchOut[0], matchOut[1], 102);
@@ -103,58 +109,37 @@ void setup(void){
 
 void loop(void){
   radio.stopListening();
-//  digitalWrite(ledPin, HIGH);
 
   imu::Vector<3> acc   = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   imu::Vector<3> gyro  = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
 
-//  serialSendAccX.sendFloat(acc.x());
-//  serialSendAccY.sendFloat(acc.y());
-//  serialSendAccZ.sendFloat(acc.z());
-//  serialSendGyroX.sendFloat(gyro.x());
-//  serialSendGyroY.sendFloat(gyro.y());
-//  serialSendGyroZ.sendFloat(gyro.z());
-//  serialSendEulerX.sendFloat(euler.x());
-//  serialSendEulerY.sendFloat(euler.y());
-//  serialSendEulerZ.sendFloat(euler.z());
+  // sendSerialData(&acc, &gyro, &euler);
+  sendTransceiverData(&acc, &gyro, &euler);
 
-//   transSendAccX.sendFloat(millis()/100.);
-  transSendAccX.sendFloat(acc.x());
-  transSendAccY.sendFloat(acc.y());
-  transSendAccZ.sendFloat(acc.z());
-  transSendGyroX.sendFloat(gyro.x());
-  transSendGyroY.sendFloat(gyro.y());
-  transSendGyroZ.sendFloat(gyro.z());
-  transSendEulerX.sendFloat(euler.x());
-  transSendEulerY.sendFloat(euler.y());
-  transSendEulerZ.sendFloat(euler.z());
+  double speed = accSmoother.read(totalAcc(&acc)) + accSmoother.read(totalAcc(&gyro));
+  if(speed == 0.) {
+    if(pgmID==0) rgbLed.rainbowLEDS();
+    else if(pgmID==1) rgbLed.randomLEDS();
+    else if(pgmID==2) rgbLed.pulseLEDS();
 
-//  radio.startListening();
-//
-//  unsigned long started_waiting_at = micros();               // Set up a timeout period, get the current microseconds
-//  boolean timeout = false;                                   // Set up a variable to indicate if a response was received or not
-//
-//  while(!radio.available()){                                 // While nothing is received
-//    if (micros() - started_waiting_at > 200000 ){            // If waited longer than 200ms, indicate timeout and exit while loop
-//      timeout = true;
-//      break;
-//    }
-//  }
-//
-//  if ( timeout ){                                            // Describe the results
-//    Serial.println(F("Failed, response timed out."));
-//  } else {
-//    double got_time;                                  // Grab the response, compare, and send to debugging spew
-//    radio.read( &inBytesTrans, sizeof(inBytesTrans) );
-//    got_time = receiverTest.dataFloat(inBytesTrans);
-//    unsigned long end_time = micros();
-//
-//    // Spew it
-//    Serial.println(F("Sent"));
-//  }
-
-//  delay(100);
+    if(millis() >= lastPGMChange+PGMChangeSpeed){
+      int choice = random(0, 5);
+      if(choice==0){
+        pgmID = 0;
+        rgbLed.initRainbowLEDS(random(5, 30));
+      } else if(choice==1){
+        pgmID = 1;
+        rgbLed.initRandomLEDS(random(200, 1000));
+      } else if(choice==2){
+        pgmID = 2;
+        rgbLed.initPulseLEDS(random(5, 100));
+      }
+      lastPGMChange = millis();
+    }
+  }
+  else eulerLeds(&euler);
+  rgbLed.showLEDS(10);
 }
 
 void openTransceiver(){
@@ -163,7 +148,7 @@ void openTransceiver(){
 
   // Set the PA Level low to prevent power supply related issues since this is a
   // getting_started sketch, and the likelihood of close proximity of the devices. RF24_PA_MAX is default.
-//  radio.setPALevel(RF24_PA_MIN);
+  // radio.setPALevel(RF24_PA_MIN);
   radio.setPALevel(RF24_PA_MAX);
 
   // Open a writing and reading pipe on each radio, with opposite addresses
@@ -172,9 +157,44 @@ void openTransceiver(){
 
   // Start the radio listening for data
   radio.enableDynamicPayloads() ;
-  radio.setAutoAck( true ) ;
+  radio.setAutoAck( false ) ;
   radio.powerUp() ;
   radio.startListening();
 
   radio.printDetails();
+}
+void sendTransceiverData(imu::Vector<3> *acc, imu::Vector<3> *gyro, imu::Vector<3> *euler){
+  transSendAccX.sendFloat(acc->x());
+  transSendAccY.sendFloat(acc->y());
+  transSendAccZ.sendFloat(acc->z());
+  transSendGyroX.sendFloat(gyro->x());
+  transSendGyroY.sendFloat(gyro->y());
+  transSendGyroZ.sendFloat(gyro->z());
+  transSendEulerX.sendFloat(euler->x());
+  transSendEulerY.sendFloat(euler->y());
+  transSendEulerZ.sendFloat(euler->z());
+}
+void sendSerialData(imu::Vector<3> *acc, imu::Vector<3> *gyro, imu::Vector<3> *euler){
+  serialSendAccX.sendFloat(acc->x());
+  serialSendAccY.sendFloat(acc->y());
+  serialSendAccZ.sendFloat(acc->z());
+  serialSendGyroX.sendFloat(gyro->x());
+  serialSendGyroY.sendFloat(gyro->y());
+  serialSendGyroZ.sendFloat(gyro->z());
+  serialSendEulerX.sendFloat(euler->x());
+  serialSendEulerY.sendFloat(euler->y());
+  serialSendEulerZ.sendFloat(euler->z());
+}
+
+void eulerLeds(imu::Vector<3> *euler){
+  int red   = map(euler->x(), 0, 360, 0, 100);
+  int green = map(euler->y(), -100, 100, 0, 255);
+  int blue  = map(euler->z(), -100, 100, 0, 255);
+  rgbLed.setLEDS(red, green, blue);
+}
+double totalAcc(imu::Vector<3> *acc){
+  double x = acc->x();
+  double y = acc->y();
+  double z = acc->z();
+  return sqrt( (x*x) + (y*y) + (z*z) );
 }
