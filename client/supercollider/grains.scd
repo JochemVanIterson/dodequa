@@ -1,6 +1,9 @@
 // s.boot;
-// s.reboot;
+//s.quit;
+//s.reboot;
 currentEnvironment;
+
+Server.default.options.outDevice_("Built-in Output");
 
 ~map = {
 	arg value, inMin, inMax, outMin, outMax;
@@ -12,30 +15,30 @@ currentEnvironment;
 
 ~calcVariables = {
 	//-------------- Position --------------//
-	~position = ~map.value(~rotatieOrientatie, -100, 100, 0, 254);
+	~position = ~map.value(~rotatieOrientatie, -100, 100, 0.0, 0.8);
 	// (~rotatieOrientatie+100)/200*254;
 	//position tussen 0 en 254 adv rotatieOrientatie
 
 	//-------------- Envelope --------------//
 	if (~rotatieSnelheid >= 34, {
-		~attack = ~map.value(~rotatieSnelheid, -100, 100, 0, 3000);
+		~pan = ~map.value(~rotatieSnelheid, -100, 100, 0, 0.8);
 		// (~rotatieSnelheid+100)/200*3000;
 	},{
-		~attack = 500;
+		~pan = 0.3;
  	});
 	//attack tussen 500 en 3000 ms adv rotatieSnelheid
 
 	if (~snelheid >= 34, {
-		~decay = ~map.value(~snelheid, -100, 100, 0, 3000);
+		~amplitude = ~map.value(~snelheid, -100, 100, 0.0, 1.0);
 		// (~snelheid+100)/200*3000;
 	},{
-		~decay = 500;
+		~amplitude = 1.0;
 	});
 	//decay tussen 500 en 3000 ms adv snelheid
 
 	//-------------- Position Jitter --------------//
 	if( (~rotatieOrientatie + ~rotatieSnelheid/2) >= 34,{
-		~positionJitter = ~rotatieOrientatie + ~map.value(~rotatieSnelheid, -100, 100, 0, 100);
+		~positionJitter = (~rotatieOrientatie + ~map.value(~rotatieSnelheid, -100, 100, 0, 100)) * 0.001;
 		// ~rotatieSnelheid/2+100/200*100;
 	},{
 		~positionJitter = 5;
@@ -43,11 +46,11 @@ currentEnvironment;
 	//position jitter tussen 5 en 100
 
 	//-------------- Length --------------//
-	if (~rotatieSnelheid+~rotatieSnelheidCloud/2+100 >=0.2,{
-		~length = ~rotatieSnelheid + ~map.value(~rotatieSnelheidCloud, -100, 100, 0, 1000);
+	if (~rotatieSnelheid/2+100 >=0.2,{
+		~length = ~rotatieSnelheid + ~map.value(~rotatieSnelheid, -100, 100, 0.0, 0.9);
 		// ~rotatieSnelheidCloud/2+100/200*1000;
 	},{
-		~length = 1;
+		~length = 0.0;
 	});
 	//length tussen 1 en 1000
 
@@ -57,13 +60,13 @@ currentEnvironment;
 	//harmonics tussen 0 en 254
 
 	//-------------- Galm --------------//
-	~galm = ~rotatieOrientatie + ~map.value(~rotatieSnelheid, -100, 100, 0, 6000);
+	~stretch = ~rotatieOrientatie + ~map.value(~rotatieSnelheid, -100, 100, 0, 40);
 	// ~rotatieOrientatieCloud/2+100/200*6000;
 	//galm tussen 0 en 6000
 
 	//-------------- Filters --------------//
 	//TODO: getal uit Xline halen
-	if ((~rotatieSnelheid+~snelheidCloud+~snelheid/3+100 >= 1),{
+	if (((~rotatieSnelheid + ~snelheid/3+100) >= 1),{
 		~filter = {XLine.ar(200, 20000, 1.0, 1.0, 0.0, 0);}
 	},{
 		~filter = 200;
@@ -71,8 +74,8 @@ currentEnvironment;
 	// filters tussen 200 en 20000
 
 	//-------------- Pitch --------------//
-	if (~rotatieOrientatie+~snelheid-~rotatieOrientatieCloud+~snelheidCloud/3+100 >= 8,{
-		~pitch = ~rotatieOrientatie+~snelheid-~rotatieOrientatieCloud+~snelheidCloud/3+100/200*4500;
+	if (~rotatieOrientatie+~snelheid/3+100 >= 8,{
+		~pitch = ~rotatieOrientatie+~snelheid/3+100/200*4500;
 	},{
 		~pitch = 180;
 	});
@@ -81,14 +84,14 @@ currentEnvironment;
 thisProcess.openUDPPort(3002);
 ~oscAcc = OSCFunc(
 	{ arg msg,time,addr,recvPort;
-		msg.postln;
+
 		~snelheid=msg[1]*msg[2]*msg[3];
 	},
 	'/serialdata/acc/calc'
 );
 ~oscMag = OSCFunc(
 	{ arg msg,time,addr,recvPort;
-		msg.postln;
+
 		~rotatieOrientatieX = msg[1];
 		~rotatieOrientatieY = msg[2];
 		~rotatieOrientatieZ = msg[3];
@@ -98,7 +101,7 @@ thisProcess.openUDPPort(3002);
 );
 ~oscGyro = OSCFunc(
 	{ arg msg,time,addr,recvPort;
-		msg.postln;
+
 		~rotatieSnelheidX = msg[1];
 		~rotatieSnelheidY = msg[2];
 		~rotatieSnelheidZ = msg[3];
@@ -106,13 +109,82 @@ thisProcess.openUDPPort(3002);
 	},
 	'/serialdata/gyro/calc'
 );
+
 ~oscButtons = OSCFunc(
 	{ arg msg,time,addr,recvPort;
-		msg.postln;
-		~buttonOne = msg[1];
-		~buttonTwo = msg[2];
-		~buttonThree = msg[3];
-		~buttonFour = msg[4];
+		s.waitForBoot({
+			if ((msg[1] == 1), {
+				{
+					var length=0.7, startPos=0.4, timestretch=2, overlap=3;
+					10.do{
+						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
+							, \startPos
+							, (startPos+~positionJitter.rand2)*b.sampleRate
+							, \rate, [0, 12, 24].choose.midiratio
+							, \length, length
+							, \pan, 0.2.rand2
+							, \amp, (1/overlap).sqrt * 0.4
+						]);
+						(length/overlap).wait;
+						startPos=(length/timestretch/overlap+startPos)%b.duration;
+					}
+				}.fork;
+			});
+
+			if ((msg[2] == 1), {
+				{
+					var length=0.5, startPos=0.4, timestretch=2, overlap=2;
+					100.do{
+						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
+							, \startPos
+							, (startPos+~positionJitter.rand2)*b.sampleRate
+							, \rate, [5, 7].choose.midiratio
+							, \length, length
+							, \pan, 0.2.rand2
+							, \amp, (1/overlap).sqrt * 0.2
+						]);
+						(length/overlap).wait;
+						startPos=(length/timestretch/overlap+startPos)%b.duration;
+					}
+				}.fork;
+			});
+
+			if ((msg[3] == 1), {
+				{
+					var length=0.5, startPos=0.4, timestretch=2, overlap=2;
+					50.do{
+						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
+							, \startPos
+							, (startPos+~positionJitter.rand2)*b.sampleRate
+							, \rate, [10, 14].choose.midiratio
+							, \length, length
+							, \pan, 0.2.rand2
+							, \amp, (1/overlap).sqrt * 0.2
+						]);
+						(length/overlap).wait;
+						startPos=(length/timestretch/overlap+startPos)%b.duration;
+					}
+				}.fork;
+			});
+
+			if ((msg[4] == 1), {
+				{
+					var length=0.5, startPos=0.4, timestretch=2, overlap=2;
+					500.do{
+						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
+							, \startPos
+							, (startPos+~positionJitter.rand2)*b.sampleRate
+							, \rate, [-36, -29].choose.midiratio
+							, \length, length
+							, \pan, 0.2.rand2
+							, \amp, (1/overlap).sqrt * 0.5
+						]);
+						(length/overlap).wait;
+						startPos=(length/timestretch/overlap+startPos)%b.duration;
+					}
+				}.fork;
+			});
+		});
 	},
 	'/serialdata/buttons'
 );
@@ -133,17 +205,13 @@ thisProcess.openUDPPort(3002);
 
 ~snelheid = 75;
 
-~rotatieOrientatieCloud = 20;
-~rotatieSnelheidCloud = -58;
-~snelheidCloud = 44;
-
 ~position = 0;
-~attack = 500;
-~decay = 500;
+~pan = 0.2;
+~amplitude = 1.0;
 ~positionJitter = 5;
 ~length = 1;
 ~harmonics = 0;
-~galm = 0;
+~stretch = 2;
 ~filter = 200;
 ~pitch = 180;
 
@@ -158,67 +226,52 @@ TempoClock.default.sched(0.1, {
 	0.1; //Herhaal iedere nn seconden
 });
 
+
 //------------------Audio-------------------//
-~g0 = Group.new(s, 0);
-~g1 = Group.after(~g0);
+s.waitForBoot({
+	"Wait completed".postln;
+	s.scope;
+	~grainPath = File.getcwd +/+ "GranSample2_L48.wav";
+	// ~grainPath = "/Users/jochem/stack/HKU/Jaar 3/Blok 3/CSD/dodequa/client/supercollider/GranSample2_L48.wav";
 
-~myBus = Bus.audio(s, 2);
+	b = Buffer.read(s, ~grainPath, 0, -1, {
+		SynthDef(\Grain, {
+			arg rate=1.0, amp=0.5, startPos=0.0, pan=0.0, length=0.1, bufnum, filterfrequency=440;
+			var env=EnvGen.kr(Env.sine(length, amp), doneAction:2);
+			var grain=PlayBuf.ar(1, bufnum, rate, 1, startPos)*env;
 
-~myBus.index;
-~myBus.numChannels;
+			//Out.ar(0, Pan2.ar(grain, pan));
+			Out.ar(0, LPF.ar(Pan2.ar(grain, pan), filterfrequency, 1, 0));
+		}).add;
 
-SynthDef(\EffectBus, {
-	arg cutoff, multy = 1, add = 0;
-	var input, effect;
-	input = In.ar(~myBus, 2);
 
-	effect = FreeVerb.ar(LPF.ar(input, 20000, 1, 0), 0.33, 0.5, 0.2, 1.0, 0);
+		SynthDef(\miniGrain, {
+			arg rate=1.0, amp=0.5, startPos=0.0, pan=0.0, length=0.1, bufnum;
+			var env=EnvGen.kr(Env.sine(length, amp), doneAction:2);
+			var grain=PlayBuf.ar(1, bufnum, rate, 1, startPos)*env;
 
-	Out.ar(0, effect);
-}).add;
+			//Out.ar(0, Pan2.ar(grain, pan));
+			Out.ar(0, Pan2.ar(grain, pan));
+		}).add;
 
-a = Synth(\EffectBus, [\cutoff, 440], ~g1);
 
-b = Buffer.read(s, "C:/Users/Tijs/Desktop/GranSample2_L.wav");
-
-SynthDef(\Grain, {
-	arg outch = ~myBus, rate=1.0, amp=0.5, startPos=0.0, pan=0.0, length=0.1, bufnum;
-	var env=EnvGen.kr(Env.sine(length, amp), doneAction:2);
-	var grain=PlayBuf.ar(1, bufnum, rate, 1, startPos)*env;
-
-	//Out.ar(0, Pan2.ar(grain, pan));
-	Out.ar(0, LPF.ar(Pan2.ar(grain, pan), ~filter, 1, 0));
-}).add;
-
-r = {Out.ar(0, FreeVerb.ar(In.ar(~myBus, 2), mix: 0.5, room: 0.9, mul: 1.0))}.play;
-
-~filter = 1000;
-~filter = 20000;
-~filter = 440;
-
-a.set(\cutoff, 20000);
-a.set(\cutoff, 440);
-
-s.scope;
-~filter.postln;
-
-~startPosDeviation=0.0001;
-{
-	var length=0.2, startPos=0.2, timestretch=2, overlap=65;
-	inf.do{
-		s.sendBundle(0.2, [\s_new, \Grain, -1, 1, 1, \bufnum, b.bufnum
-			, \startPos
-			, (startPos+~startPosDeviation.rand2)*b.sampleRate
-			, \rate, [-48, -24, -12, 0, 12].choose.midiratio
-			, \length, length
-			, \pan, 0.2.rand2
-			, \amp, (1/overlap).sqrt
-		]);
-		(length/overlap).wait;
-		startPos=(length/timestretch/overlap+startPos)%b.duration;
-	}
-}.fork;
-
-// s.quit
-
-//	Out.ar(obs, FreeVerb.ar(LPF.ar(Pan2.ar(grain, pan), 200, 1, 0), 0.33, 0.5, 0.2, 1.0, 0));
+		{
+			var length=~length, startPos=~position, timestretch=~stretch, overlap=9;
+			inf.do{
+				s.sendBundle(0.2, [\s_new, \Grain, -1, 1, 1, \bufnum, b.bufnum
+					, \startPos
+					, (startPos+~positionJitter.rand2) * b.sampleRate
+					, \rate, [-48, -24, -12, 0, 12].choose.midiratio
+					, \length, length
+					, \pan, ~pan.rand2
+					, \amp, (1/overlap).sqrt
+					// , \amp, (1/overlap).sqrt * ~amplitude
+					// , \filterfrequency, ~filter
+					, \filterfrequency, 2000
+				]);
+				(length/overlap).wait;
+				startPos=(length/timestretch/overlap+startPos)%b.duration;
+			}
+		}.fork;
+	});
+});
