@@ -1,5 +1,6 @@
 s.boot;
-// s.reboot;
+//s.quit;
+//s.reboot;
 currentEnvironment;
 
 ~map = {
@@ -12,7 +13,7 @@ currentEnvironment;
 
 ~calcVariables = {
 	//-------------- Position --------------//
-	~position = ~map.value(~rotatieOrientatie, -100, 100, 0., 0.8);
+	~position = ~map.value(~rotatieOrientatie, -100, 100, 0.0, 0.8);
 	// (~rotatieOrientatie+100)/200*254;
 	//position tussen 0 en 254 adv rotatieOrientatie
 
@@ -106,6 +107,7 @@ thisProcess.openUDPPort(3002);
 	},
 	'/serialdata/gyro/calc'
 );
+
 ~oscButtons = OSCFunc(
 	{ arg msg,time,addr,recvPort;
 
@@ -125,7 +127,7 @@ thisProcess.openUDPPort(3002);
 					startPos=(length/timestretch/overlap+startPos)%b.duration;
 				}
 			}.fork;
-		})
+		});
 
 		if (msg[2] = true, {
 			{
@@ -143,7 +145,7 @@ thisProcess.openUDPPort(3002);
 					startPos=(length/timestretch/overlap+startPos)%b.duration;
 				}
 			}.fork;
-		})
+		});
 
 		if (msg[3] = true, {
 			{
@@ -161,7 +163,7 @@ thisProcess.openUDPPort(3002);
 					startPos=(length/timestretch/overlap+startPos)%b.duration;
 				}
 			}.fork;
-		})
+		});
 
 		if (msg[4] = true, {
 			{
@@ -179,7 +181,7 @@ thisProcess.openUDPPort(3002);
 					startPos=(length/timestretch/overlap+startPos)%b.duration;
 				}
 			}.fork;
-		})
+		});
 	},
 	'/serialdata/buttons'
 );
@@ -222,27 +224,9 @@ TempoClock.default.sched(0.1, {
 });
 
 //------------------Audio-------------------//
-~g0 = Group.new(s, 0);
-~g1 = Group.after(~g0);
-
-~myBus = Bus.audio(s, 2);
-
-~myBus.index;
-~myBus.numChannels;
-
-SynthDef(\EffectBus, {
-	arg cutoff, multy = 1, add = 0;
-	var input, effect;
-	input = In.ar(~myBus, 2);
-
-	effect = FreeVerb.ar(LPF.ar(input, 20000, 1, 0), 0.33, 0.5, 0.2, 1.0, 0);
-
-	Out.ar(0, effect);
-}).add;
-
 a = Synth(\EffectBus, [\cutoff, 440], ~g1);
 
-b = Buffer.read(s, "GranSample2_L.wav");
+b = Buffer.read(s, "C:/Users/Tijs/Desktop/Synth/GranSample2_L.wav");
 
 SynthDef(\Grain, {
 	arg rate=1.0, amp=0.5, startPos=0.0, pan=0.0, length=0.1, bufnum, filterfrequency=440;
@@ -263,10 +247,8 @@ SynthDef(\miniGrain, {
 	Out.ar(0, Pan2.ar(grain, pan));
 }).add;
 
-r = {Out.ar(0, FreeVerb.ar(In.ar(~myBus, 2), mix: 0.5, room: 0.9, mul: 1.0))}.play;
-
 {
-	var length=~length, startPos=~position, timestretch=~stretch, overlap=3;
+	var length=~length, startPos=~position, timestretch=~stretch, overlap=9;
 	inf.do{
 		s.sendBundle(0.2, [\s_new, \Grain, -1, 1, 1, \bufnum, b.bufnum
 			, \startPos
