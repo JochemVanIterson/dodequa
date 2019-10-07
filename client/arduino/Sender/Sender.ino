@@ -14,12 +14,13 @@
 
 #include "DodeQuaLED.h"
 #include "SmoothAnalog.h"
+#include "SmoothDigital.h"
 
 // ---------------------------------- PINS ---------------------------------- //
-const int buttonLed1Pin = 3;
-const int buttonLed2Pin = 4;
-const int buttonLed3Pin = 5;
-const int buttonLed4Pin = 6;
+const int buttonLed1Pin = 4;
+const int buttonLed2Pin = 5;
+const int buttonLed3Pin = 6;
+const int buttonLed4Pin = 9;
 const int button1Pin = 14;
 const int button2Pin = 15;
 const int button3Pin = 16;
@@ -34,6 +35,7 @@ int button1State;
 int button2State;
 int button3State;
 int button4State;
+bool buttonStates[4] = {false};
 
 // ---------------------------------- 9DOF ---------------------------------- //
 Adafruit_BNO055 bno = Adafruit_BNO055();
@@ -82,7 +84,7 @@ SimpleSerialSender serialSendButton3;
 SimpleSerialSender serialSendButton4;
 
 // -------------------------------- RGB LED --------------------------------- //
-DodeQuaLED rgbLed(100);
+DodeQuaLED rgbLed(255);
 unsigned long lastPGMChange;
 int PGMChangeSpeed = 5000;
 int pgmID = 2;
@@ -100,6 +102,14 @@ void setup(void){
 
   // -------------- Set Pins -------------- //
   //  pinMode(ledPin, OUTPUT);
+  pinMode(button1Pin, INPUT_PULLUP);
+  pinMode(button2Pin, INPUT_PULLUP);
+  pinMode(button3Pin, INPUT_PULLUP);
+  pinMode(button4Pin, INPUT_PULLUP);
+  pinMode(buttonLed1Pin, OUTPUT);
+  pinMode(buttonLed2Pin, OUTPUT);
+  pinMode(buttonLed3Pin, OUTPUT);
+  pinMode(buttonLed4Pin, OUTPUT);
 
   // -------------- Init 9DOF Sensor -------------- //
   if(!bno.begin()){
@@ -140,15 +150,6 @@ void setup(void){
   transSendButton4 = SimpleTransSender(&radio, matchOut[0], matchOut[1], 133);
 
   // -------------- Buttons -------------- //
-  pinMode(button1Pin, INPUT_PULLUP);
-  pinMode(button2Pin, INPUT_PULLUP);
-  pinMode(button3Pin, INPUT_PULLUP);
-  pinMode(button4Pin, INPUT_PULLUP);
-  pinMode(buttonLed1Pin, OUTPUT);
-  pinMode(buttonLed2Pin, OUTPUT);
-  pinMode(buttonLed3Pin, OUTPUT);
-  pinMode(buttonLed4Pin, OUTPUT);
-
   button1 = SmoothDigital(button1Pin, 2);
   button2 = SmoothDigital(button2Pin, 2);
   button3 = SmoothDigital(button3Pin, 2);
@@ -162,8 +163,10 @@ void loop(void){
   imu::Vector<3> gyro  = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
 
-  // sendSerialData(&acc, &gyro, &euler);
-  sendTransceiverData(&acc, &gyro, &euler);
+  if(millis() >= lastMillis+100){
+    // sendSerialData(&acc, &gyro, &euler);
+    sendTransceiverData(&acc, &gyro, &euler);
+  }
 
   handleButtons();
 
@@ -223,6 +226,12 @@ void sendTransceiverData(imu::Vector<3> *acc, imu::Vector<3> *gyro, imu::Vector<
   transSendEulerX.sendFloat(euler->x());
   transSendEulerY.sendFloat(euler->y());
   transSendEulerZ.sendFloat(euler->z());
+
+  transSendButton1.sendUInt(buttonStates[0]);
+  transSendButton2.sendUInt(buttonStates[1]);
+  transSendButton3.sendUInt(buttonStates[2]);
+  transSendButton4.sendUInt(buttonStates[3]);
+
 }
 void sendSerialData(imu::Vector<3> *acc, imu::Vector<3> *gyro, imu::Vector<3> *euler){
   serialSendAccX.sendFloat(acc->x());
@@ -253,25 +262,29 @@ void handleButtons(){
   button1State = button1.read();
   if(button1State != -1) { //button has changed
     if(button1State != 1) digitalWrite(buttonLed1Pin, HIGH);
-    else digitalWrite(buttonLed1Pin, HIGH);
-    transSendButton1.sendBool(button1State);
+    else digitalWrite(buttonLed1Pin, LOW);
+    buttonStates[0] = button1State==0;
+    transSendButton1.sendUInt(buttonStates[0]);
   }
   button2State = button2.read();
   if(button2State != -1) { //button has changed
     if(button2State != 1) digitalWrite(buttonLed2Pin, HIGH);
-    else digitalWrite(buttonLed2Pin, HIGH);
-    transSendButton2.sendBool(button2State);
+    else digitalWrite(buttonLed2Pin, LOW);
+    buttonStates[1] = button2State==0;
+    transSendButton2.sendUInt(buttonStates[1]);
   }
   button3State = button3.read();
   if(button3State != -1) { //button has changed
     if(button3State != 1) digitalWrite(buttonLed3Pin, HIGH);
-    else digitalWrite(buttonLed3Pin, HIGH);
-    transSendButton3.sendBool(button3State);
+    else digitalWrite(buttonLed3Pin, LOW);
+    buttonStates[2] = button3State==0;
+    transSendButton3.sendUInt(buttonStates[2]);
   }
   button4State = button4.read();
   if(button4State != -1) { //button has changed
     if(button4State != 1) digitalWrite(buttonLed4Pin, HIGH);
-    else digitalWrite(buttonLed4Pin, HIGH);
-    transSendButton4.sendBool(button4State);
+    else digitalWrite(buttonLed4Pin, LOW);
+    buttonStates[3] = button4State==0;
+    transSendButton4.sendUInt(buttonStates[3]);
   }
 }

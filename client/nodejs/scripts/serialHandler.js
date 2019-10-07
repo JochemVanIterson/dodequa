@@ -64,21 +64,36 @@ module.exports = class {
 
         // Button
         if(self.serialIDMatch(buf, 130)){ //Button 1
-          console.log("button1", self.serialCalcBool(buf));
-          appData.object.buttons[0] = self.serialCalcBool(buf);
-          oscHandler.send("/serialdata/buttons", appData.object.buttons);
-        } else if(self.serialIDMatch(buf, 131)){ //Button 2
-          console.log("button2", self.serialCalcBool(buf));
-          appData.object.buttons[1] = self.serialCalcBool(buf);
-          oscHandler.send("/serialdata/buttons", appData.object.buttons);
-        } else if(self.serialIDMatch(buf, 132)){ //Button 3
-          console.log("button3", self.serialCalcBool(buf));
-          appData.object.buttons[2] = self.serialCalcBool(buf);
-          oscHandler.send("/serialdata/buttons", appData.object.buttons);
-        } else if(self.serialIDMatch(buf, 133)){ //Button 4
-          console.log("button4", self.serialCalcBool(buf));
-          appData.object.buttons[3] = self.serialCalcBool(buf);
-          oscHandler.send("/serialdata/buttons", appData.object.buttons);
+          let value = self.serialCalcUInt(buf);
+          if(appData.object.buttons[0]!=value){
+            console.log("button1", value);
+            appData.object.buttons[0] = value;
+            oscHandler.send("/serialdata/buttons", appData.object.buttons);
+          }
+        } else
+        if(self.serialIDMatch(buf, 131)){ //Button 1
+          let value = self.serialCalcUInt(buf);
+          if(appData.object.buttons[1]!=value){
+            console.log("button2", value);
+            appData.object.buttons[1] = value;
+            oscHandler.send("/serialdata/buttons", appData.object.buttons);
+          }
+        } else
+        if(self.serialIDMatch(buf, 132)){ //Button 1
+          let value = self.serialCalcUInt(buf);
+          if(appData.object.buttons[2]!=value){
+            console.log("button3", value);
+            appData.object.buttons[2] = value;
+            oscHandler.send("/serialdata/buttons", appData.object.buttons);
+          }
+        } else
+        if(self.serialIDMatch(buf, 133)){ //Button 1
+          let value = self.serialCalcUInt(buf);
+          if(appData.object.buttons[3]!=value){
+            console.log("button4", value);
+            appData.object.buttons[3] = value;
+            oscHandler.send("/serialdata/buttons", appData.object.buttons);
+          }
         }
       }
     }); // will have 4 bytes per data event

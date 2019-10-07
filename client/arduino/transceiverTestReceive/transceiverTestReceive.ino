@@ -38,6 +38,11 @@ SimpleTransReceiver transReceiverEulerX;
 SimpleTransReceiver transReceiverEulerY;
 SimpleTransReceiver transReceiverEulerZ;
 
+SimpleTransReceiver transReceiverButton1;
+SimpleTransReceiver transReceiverButton2;
+SimpleTransReceiver transReceiverButton3;
+SimpleTransReceiver transReceiverButton4;
+
 void setup() {
   Serial.begin(115200);
 //  printf_begin();
@@ -76,6 +81,11 @@ void setup() {
   transReceiverEulerX = SimpleTransReceiver(&radio, 252, 100, 120);
   transReceiverEulerY = SimpleTransReceiver(&radio, 252, 100, 121);
   transReceiverEulerZ = SimpleTransReceiver(&radio, 252, 100, 122);
+
+  transReceiverButton1 = SimpleTransReceiver(&radio, 252, 100, 130);
+  transReceiverButton2 = SimpleTransReceiver(&radio, 252, 100, 131);
+  transReceiverButton3 = SimpleTransReceiver(&radio, 252, 100, 132);
+  transReceiverButton4 = SimpleTransReceiver(&radio, 252, 100, 133);
 }
 
 void loop() {
@@ -106,6 +116,16 @@ void loop() {
       } else if(transReceiverEulerY.match(inBytesTrans)){
         Serial.write(inBytesTrans, sizeof(inBytesTrans));
       } else if(transReceiverEulerZ.match(inBytesTrans)){
+        Serial.write(inBytesTrans, sizeof(inBytesTrans));
+      } else
+      // -------- BUTTONS -------- //
+      if(transReceiverButton1.match(inBytesTrans)){
+        Serial.write(inBytesTrans, sizeof(inBytesTrans));
+      } else if(transReceiverButton2.match(inBytesTrans)){
+        Serial.write(inBytesTrans, sizeof(inBytesTrans));
+      } else if(transReceiverButton3.match(inBytesTrans)){
+        Serial.write(inBytesTrans, sizeof(inBytesTrans));
+      } else if(transReceiverButton4.match(inBytesTrans)){
         Serial.write(inBytesTrans, sizeof(inBytesTrans));
       }
 

@@ -106,6 +106,16 @@ thisProcess.openUDPPort(3002);
 	},
 	'/serialdata/gyro/calc'
 );
+~oscButtons = OSCFunc(
+	{ arg msg,time,addr,recvPort;
+		msg.postln;
+		~buttonOne = msg[1];
+		~buttonTwo = msg[2];
+		~buttonThree = msg[3];
+		~buttonFour = msg[4];
+	},
+	'/serialdata/buttons'
+);
 
 
 
