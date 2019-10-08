@@ -29,16 +29,16 @@ Server.default.options.outDevice_("Built-in Output");
 	//attack tussen 500 en 3000 ms adv rotatieSnelheid
 
 	if (~snelheid >= 34, {
-		~amplitude = ~map.value(~snelheid, -100, 100, 0.0, 1.0);
+		~amplitude = ~map.value(~snelheid, -100, 100, 0.0, 3.0);
 		// (~snelheid+100)/200*3000;
 	},{
-		~amplitude = 1.0;
+		~amplitude = 3.0;
 	});
 	//decay tussen 500 en 3000 ms adv snelheid
 
 	//-------------- Position Jitter --------------//
-	if( (~rotatieOrientatie + ~rotatieSnelheid/2) >= 34,{
-		~positionJitter = (~rotatieOrientatie + ~map.value(~rotatieSnelheid, -100, 100, 0, 100)) * 0.001;
+	if( (~rotatieOrientatieX + ~rotatieSnelheid/2) >= 34,{
+		~positionJitter = (~rotatieOrientatieX + ~map.value(~rotatieSnelheid, -100, 100, 0, 100)) * 0.001;
 		// ~rotatieSnelheid/2+100/200*100;
 	},{
 		~positionJitter = 5;
@@ -50,7 +50,7 @@ Server.default.options.outDevice_("Built-in Output");
 		~length = ~rotatieSnelheid + ~map.value(~rotatieSnelheid, -100, 100, 0.0, 0.9);
 		// ~rotatieSnelheidCloud/2+100/200*1000;
 	},{
-		~length = 0.0;
+		~length = 0.9;
 	});
 	//length tussen 1 en 1000
 
@@ -60,24 +60,25 @@ Server.default.options.outDevice_("Built-in Output");
 	//harmonics tussen 0 en 254
 
 	//-------------- Galm --------------//
-	~stretch = ~rotatieOrientatie + ~map.value(~rotatieSnelheid, -100, 100, 0, 40);
+	~stretch = ~rotatieOrientatieY + ~map.value(~rotatieSnelheid, -100, 100, 0, 40);
 	// ~rotatieOrientatieCloud/2+100/200*6000;
 	//galm tussen 0 en 6000
 
 	//-------------- Filters --------------//
 	//TODO: getal uit Xline halen
-	if (((~rotatieSnelheid + ~snelheid/3+100) >= 1),{
-		~filter = {XLine.ar(200, 20000, 1.0, 1.0, 0.0, 0);}
+	if (((~rotatieOrientatieZ >= -100) && (~rotatieOrientatieZ <= 100)),{
+		// ~filter = {XLine.ar(200, 20000, 1.0, 1.0, 0.0, 0);}
+		~filter = ~map.value(~rotatieOrientatieZ, -100, 100, 100, 5000);
 	},{
 		~filter = 200;
 	});
 	// filters tussen 200 en 20000
 
 	//-------------- Pitch --------------//
-	if (~rotatieOrientatie+~snelheid/3+100 >= 8,{
-		~pitch = ~rotatieOrientatie+~snelheid/3+100/200*4500;
+	if (((~rotatieOrientatieX >= -100) && (~rotatieOrientatieX <= 100)),{
+		~pitch = ~map.value(~rotatieOrientatieZ, -100, 100, -6, 6);
 	},{
-		~pitch = 180;
+		~pitch = 0;
 	});
 };
 
@@ -85,13 +86,13 @@ thisProcess.openUDPPort(3002);
 ~oscAcc = OSCFunc(
 	{ arg msg,time,addr,recvPort;
 
-		~snelheid=msg[1]*msg[2]*msg[3];
+		~snelheid=msg[1]*msg[1]*msg[2]*msg[2]*msg[3]*msg[3];
 	},
 	'/serialdata/acc/calc'
 );
 ~oscMag = OSCFunc(
 	{ arg msg,time,addr,recvPort;
-
+		msg.postln;
 		~rotatieOrientatieX = msg[1];
 		~rotatieOrientatieY = msg[2];
 		~rotatieOrientatieZ = msg[3];
@@ -114,8 +115,9 @@ thisProcess.openUDPPort(3002);
 	{ arg msg,time,addr,recvPort;
 		s.waitForBoot({
 			if ((msg[1] == 1), {
+				msg.postln;
 				{
-					var length=0.7, startPos=0.4, timestretch=2, overlap=3;
+					var length=1, startPos=0.1, timestretch=20, overlap=6;
 					10.do{
 						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
 							, \startPos
@@ -123,7 +125,7 @@ thisProcess.openUDPPort(3002);
 							, \rate, [0, 12, 24].choose.midiratio
 							, \length, length
 							, \pan, 0.2.rand2
-							, \amp, (1/overlap).sqrt * 0.4
+							, \amp, (1/overlap).sqrt * 2.0
 						]);
 						(length/overlap).wait;
 						startPos=(length/timestretch/overlap+startPos)%b.duration;
@@ -133,15 +135,15 @@ thisProcess.openUDPPort(3002);
 
 			if ((msg[2] == 1), {
 				{
-					var length=0.5, startPos=0.4, timestretch=2, overlap=2;
-					100.do{
+					var length=0.5, startPos=0.4, timestretch=20, overlap=6;
+					15.do{
 						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
 							, \startPos
 							, (startPos+~positionJitter.rand2)*b.sampleRate
 							, \rate, [5, 7].choose.midiratio
 							, \length, length
 							, \pan, 0.2.rand2
-							, \amp, (1/overlap).sqrt * 0.2
+							, \amp, (1/overlap).sqrt * 3.0
 						]);
 						(length/overlap).wait;
 						startPos=(length/timestretch/overlap+startPos)%b.duration;
@@ -151,15 +153,15 @@ thisProcess.openUDPPort(3002);
 
 			if ((msg[3] == 1), {
 				{
-					var length=0.5, startPos=0.4, timestretch=2, overlap=2;
-					50.do{
+					var length=0.5, startPos=0.4, timestretch=25, overlap=6;
+					15.do{
 						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
 							, \startPos
 							, (startPos+~positionJitter.rand2)*b.sampleRate
 							, \rate, [10, 14].choose.midiratio
 							, \length, length
 							, \pan, 0.2.rand2
-							, \amp, (1/overlap).sqrt * 0.2
+							, \amp, (1/overlap).sqrt * 2.0
 						]);
 						(length/overlap).wait;
 						startPos=(length/timestretch/overlap+startPos)%b.duration;
@@ -169,15 +171,15 @@ thisProcess.openUDPPort(3002);
 
 			if ((msg[4] == 1), {
 				{
-					var length=0.5, startPos=0.4, timestretch=2, overlap=2;
-					500.do{
+					var length=0.5, startPos=0.4, timestretch=18, overlap=6;
+					100.do{
 						s.sendBundle(0.2, [\s_new, \miniGrain, -1, 1, 1, \bufnum, b.bufnum
 							, \startPos
 							, (startPos+~positionJitter.rand2)*b.sampleRate
-							, \rate, [-36, -29].choose.midiratio
+							, \rate, [-14, -17].choose.midiratio
 							, \length, length
 							, \pan, 0.2.rand2
-							, \amp, (1/overlap).sqrt * 0.5
+							, \amp, (1/overlap).sqrt * 2.0
 						]);
 						(length/overlap).wait;
 						startPos=(length/timestretch/overlap+startPos)%b.duration;
@@ -209,9 +211,9 @@ thisProcess.openUDPPort(3002);
 ~pan = 0.2;
 ~amplitude = 1.0;
 ~positionJitter = 5;
-~length = 1;
+~length = 0.9;
 ~harmonics = 0;
-~stretch = 2;
+~stretch = 20;
 ~filter = 200;
 ~pitch = 180;
 
@@ -220,10 +222,10 @@ thisProcess.openUDPPort(3002);
 ~buttonThree = 0;
 ~buttonFour = 0;
 
-TempoClock.default.sched(0.1, {
+TempoClock.default.sched(0.01, {
 	// "CalcVariables ".postln;
 	~calcVariables.value;
-	0.1; //Herhaal iedere nn seconden
+	0.01; //Herhaal iedere nn seconden
 });
 
 
@@ -236,8 +238,8 @@ s.waitForBoot({
 
 	b = Buffer.read(s, ~grainPath, 0, -1, {
 		SynthDef(\Grain, {
-			arg rate=1.0, amp=0.5, startPos=0.0, pan=0.0, length=0.1, bufnum, filterfrequency=440;
-			var env=EnvGen.kr(Env.sine(length, amp), doneAction:2);
+			arg rate=1.0, amp=0.5, startPos=0.0, pan=0.0, lengthin=0.1, bufnum, filterfrequency=440;
+			var env=EnvGen.kr(Env.sine(lengthin, amp), doneAction:2);
 			var grain=PlayBuf.ar(1, bufnum, rate, 1, startPos)*env;
 
 			//Out.ar(0, Pan2.ar(grain, pan));
@@ -256,21 +258,20 @@ s.waitForBoot({
 
 
 		{
-			var length=~length, startPos=~position, timestretch=~stretch, overlap=9;
+			var lengthin = ~length, startPos = 0.1, timestretch = ~stretch, overlap = 20;
 			inf.do{
 				s.sendBundle(0.2, [\s_new, \Grain, -1, 1, 1, \bufnum, b.bufnum
 					, \startPos
 					, (startPos+~positionJitter.rand2) * b.sampleRate
-					, \rate, [-48, -24, -12, 0, 12].choose.midiratio
-					, \length, length
+					, \rate, [-24, ~pitch*0.5, ~pitch].choose.midiratio
+					, \lengthin, 1
 					, \pan, ~pan.rand2
-					, \amp, (1/overlap).sqrt
-					// , \amp, (1/overlap).sqrt * ~amplitude
-					// , \filterfrequency, ~filter
-					, \filterfrequency, 2000
+					//, \amp, (1/overlap).sqrt
+					, \amp, (1/overlap).sqrt * ~amplitude
+					, \filterfrequency, ~filter
 				]);
-				(length/overlap).wait;
-				startPos=(length/timestretch/overlap+startPos)%b.duration;
+				(lengthin/overlap).wait;
+				startPos=(lengthin/timestretch/overlap+startPos)%b.duration;
 			}
 		}.fork;
 	});
