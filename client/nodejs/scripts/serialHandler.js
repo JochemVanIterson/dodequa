@@ -6,24 +6,30 @@ module.exports = class {
     this.matchIn  = [startIn,  stopIn];
     this.matchOut = [startOut, stopOut];
   }
+  openPort(){
+    let self = this;
+    this.port.open(function (err) {
+      if (err) {
+        console.log(chalk.red('Error opening port: ', err.message));
+        self.openPort();
+        // return process.exit();
+      }
+    });
+  }
   open(){
     let self = this;
     this.port = new SerialPort(appConfig.serial.port, {
       baudRate: appConfig.serial.baud,
       autoOpen: false
     });
-    this.port.open(function (err) {
-      if (err) {
-        console.log(chalk.red('Error opening port: ', err.message));
-        return process.exit();
-      }
-    })
-    setTimeout(function(){
-      self.serialWrite(30, 100);
-    }, 1000)
 
-    this.parser = this.port.pipe(new ByteLength({length: 5}))
-    this.parser.on('data', function(buf){
+    this.openPort();
+    this.buf = [0, 0, 0, 0, 0];
+    this.parser = this.port.pipe(new ByteLength({length: 1}));
+    this.parser.on('data', function(rawBuf){
+      let buf = self.buf;
+      buf.shift(); // Removes first
+      buf.push(rawBuf[0]); // Inserts at end
       // console.log("buf", buf);
       if(self.serialMatch(buf)){
         // Accelerometer
@@ -96,41 +102,41 @@ module.exports = class {
           }
         }
       }
-    }); // will have 4 bytes per data event
+    }); // will have 5 bytes per data event
   }
   serialMatch(buf){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     // console.log(bufferValues);
     return (bufferValues[0]==this.matchIn[0]) && (bufferValues[4]==this.matchIn[1]);
   }
   serialIDMatch(buf, id){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     return bufferValues[1]==id;
   }
   serialCalc(buf){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     return bufferValues[2]*256+bufferValues[3];
   }
   serialCalcUInt(buf){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     let value = bufferValues[2]*256+bufferValues[3];
     return value;
   }
   serialCalcInt(buf){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     let value = bufferValues[2]*256+bufferValues[3];
     value -= 32768;
     return value;
   }
   serialCalcFloat(buf){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     let value = bufferValues[2]*256+bufferValues[3];
     value -= 32768;
     value /= 100.;
     return value;
   }
   serialCalcBool(buf){
-    let bufferValues = buf.toJSON().data;
+    let bufferValues = buf;
     return bufferValues[3]!=0;
   }
   serialWrite(id, data){
