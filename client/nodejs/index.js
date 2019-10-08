@@ -2,7 +2,7 @@
 //////////////////////////////////// Client ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-global.statusTotal = 5;
+global.statusTotal = 6;
 global.statusIndex = 1;
 global.tools = require('./scripts/tools.js');
 
@@ -11,6 +11,7 @@ tools.statusPrinter(statusIndex++, "Loading modules");
 global.socketio = require('socket.io');
 global.socketio_client = require('socket.io-client');
 global.fs = require('fs');
+const { spawn } = require('child_process');
 
 global.socketHandler = require('./scripts/socketHandler.js');
 global.SerialHandler = require('./scripts/serialHandler.js');
@@ -71,4 +72,22 @@ if(argv['disable-serial']==undefined){
   serialdevice.list((response)=>{console.log(response)})
   serialdevice.open();
 } else console.log(chalk.yellow("Serial disabled"));
+
+tools.statusPrinter(statusIndex++, "Init Supercollider");
+let workingpath = process.cwd().replace("nodejs", "")+"supercollider/";
+
+global.supercollider = spawn("sclang", [workingpath+"Grains.scd"], {cwd:workingpath});
+
+supercollider.stdout.on('data', (data) => {
+  console.log(`stdout: ${data}`);
+});
+
+supercollider.stderr.on('data', (data) => {
+  console.error(`stderr: ${data}`);
+});
+
+supercollider.on('close', (code) => {
+  console.log(`child process exited with code ${code}`);
+});
+
 console.log(chalk.cyan('      Setup Completed'));
