@@ -16,11 +16,11 @@ Shared repository for CSD 3 project
   - [x] Serial Output
   - [x] OSC Input
   - [x] OSC Output
-- [ ] Supercollider
+- [x] Supercollider
   - [x] OSC input
   - [x] Meta-parameter conversion
-  - [ ] AudioSynth parameter control
-- [ ] Code on RPi
+  - [x] AudioSynth parameter control
+- [x] Code on RPi
   - [x] Supercollider compiled
   - [x] NodeJS installed
-  - [ ] Working code
+  - [x] Working code
